@@ -5,15 +5,14 @@ import operator
 import fractions
 
 #USERS TABLE SCHEMA
-#+-----------+-------------+------+-----+---------+----------------+
-#| Field     | Type        | Null | Key | Default | Extra          |
-#+-----------+-------------+------+-----+---------+----------------+
-#| id        | int(11)     | NO   | PRI | NULL    | auto_increment |
-#| username  | varchar(30) | YES  |     | NULL    |                |
-#| password  | varchar(15) | YES  |     | NULL    |                |
-#| correct   | int(11)     | YES  |     | NULL    |                |
-#| incorrect | int(11)     | YES  |     | NULL    |                |
-#+-----------+-------------+------+-----+---------+----------------+
+#+----------+-------------+------+-----+---------+----------------+
+#| Field    | Type        | Null | Key | Default | Extra          |
+#+----------+-------------+------+-----+---------+----------------+
+#| id       | int(11)     | NO   | PRI | NULL    | auto_increment |
+#| username | varchar(30) | YES  |     | NULL    |                |
+#| password | varchar(15) | YES  |     | NULL    |                |
+#| score    | double      | YES  |     | NULL    |                |
+#+----------+-------------+------+-----+---------+----------------+
 
 #FIXMES AND BUGS INCLUDED, SATISFACTION NOT GUARANTEED!
 
@@ -84,6 +83,9 @@ class MyApp:
 
 		self.account_info = Label(self.myContainer1, text=self.username_master)
 		self.account_info.grid(row = 0, column = 4, padx = 10, pady = 10)
+
+		self.score_info = Label(self.myContainer1, text="score: " + str(self.get_users_score(self.username_master)))
+		self.score_info.grid(row = 0, column = 5, padx = 10, pady = 10)
 
 
 	#input:
@@ -238,6 +240,14 @@ class MyApp:
 	def startResults(self, event):
 		print("results initialized...")
 
+		db = MySQLdb.connect("localhost", "root", "YOURDBPASS", "fractions_test")
+		cursor = db.cursor()
+		username_query =  "SELECT * FROM users"
+		cursor.execute(username_query)
+
+		results = cursor.fetchall()
+		db.close()
+
 		#destroy and resize orginal frame
 		self.myContainer1.destroy()
 		self.myContainer2.destroy()
@@ -255,9 +265,16 @@ class MyApp:
 		self.base1 = Frame(self.parent, width=600, height=500, bd = 1, relief = GROOVE)
 		self.base1.pack(padx = 5, pady = 5)
 
-		#create second frame
-		self.myContainer2 = Frame(self.base1, width=600, height=100)
-		self.myContainer2.pack(padx = 5, pady = 20)
+		r = 0
+		c = 0
+
+		Label(self.base1, text="Username", font=(20)).grid(row=r, column=c, padx=5, pady=5)
+		Label(self.base1, text="Score", font=(20)).grid(row=r, column=1, padx=5, pady=5)
+
+		for data in results:
+			r += 1
+			Label(self.base1, text=data[1]).grid(row=r, column=c, padx=5, pady=5)
+			Label(self.base1, text=data[3]).grid(row=r, column=c+1, padx=5, pady=5)
 
 	#input: event object
 	#output: 
@@ -279,7 +296,8 @@ class MyApp:
 		self.users_answer.config(state=DISABLED)
 
 		if self.correct_answer == self.users_answer:
-			#FIXME: update user score in db
+			#update user score in db
+			self.alter_score(self.username_master, 1.0)
 			print("Correct!")
 			self.answer_label['text'] = "Correct!"
 		else:
@@ -410,7 +428,7 @@ class MyApp:
 		except:
 			print("user does not exist, proceeding with account creation")
 			try:
-				insert_statement = "INSERT INTO users(username, password, correct, incorrect) VALUES ('%s', '%s', '%d', '%d' )" % (username, password, 0, 0)
+				insert_statement = "INSERT INTO users(username, password, score) VALUES ('%s', '%s', '%d')" % (username, password, 0)
 				cursor.execute(insert_statement)
 				print("user %s created" % (username))
 				db.commit()
@@ -426,12 +444,14 @@ class MyApp:
 	#output: 
 	#description: alter correct table
 	def alter_score(self, username, value):
-		if value == 1.0:
-			pass
-			#add 2 points
-		elif value == 0.5:
-			pass
-			#add 1 point
+		db = MySQLdb.connect("localhost", "root", "YOURDBPASS", "fractions_test")
+		cursor = db.cursor()
+		insert_statement = "INSERT INTO users(score) VALUES ('%d')" % (self.get_users_score(username) + value)
+
+		if value == 1.0 or value == 1.0:
+			cursor.execute(username_query)
+			print("score value for user", username, "updated successfully")
+			db.close()
 		else:
 			print("can only add 1.0 or 0.5 points to score")
 
@@ -439,13 +459,15 @@ class MyApp:
 	#output: 
 	#description: get a user's score
 	def get_users_score(self, username):
-		pass
+		db = MySQLdb.connect("localhost", "root", "YOURDBPASS", "fractions_test")
+		cursor = db.cursor()
+		username_query =  "SELECT * FROM users WHERE username = '%s'" % username
 
-	#input: 
-	#output: 
-	#description: display all scores in a table
-	def show_all_scores(self):
-		pass
+		cursor.execute(username_query)
+		results = cursor.fetchall()
+		db.close()
+
+		return results[0][3]
 
 root = Tk()
 root.minsize(width=700, height=500)
