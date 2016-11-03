@@ -24,6 +24,7 @@ class MyApp:
 	#description: initial login screen, calls login functions for application
 	def __init__(self, myParent):
 		print("app initialized...")
+		self.username_master = ""
 		self.parent = myParent
 
 		#create and pack container
@@ -80,6 +81,10 @@ class MyApp:
 		self.quit_button["text"] = "Quit"
 		self.quit_button.grid(row = 0, column = 3, padx = 10, pady = 10)
 		self.quit_button.bind("<Button-1>", self.quit)
+
+		self.account_info = Label(self.myContainer1, text=self.username_master)
+		self.account_info.grid(row = 0, column = 4, padx = 10, pady = 10)
+
 
 	#input:
 	#output: 
@@ -184,10 +189,8 @@ class MyApp:
 		self.users_answer = Entry(self.myContainer3, textvariable=self.users_answer_final)
 		self.users_answer.grid(row = 4, column = 1)
 
-		#FIXME: this is not working yet, will need to also display correct answer
 		#display correct or incorrect
-		self.message = StringVar()
-		self.answer_label = Label(self.myContainer3, text=self.message, font=(40))
+		self.answer_label = Label(self.myContainer3, text="", font=(40))
 		self.answer_label.grid(row = 8, column = 0, padx = 10, pady=5)
 
 		#submission button
@@ -278,9 +281,10 @@ class MyApp:
 		if self.correct_answer == self.users_answer:
 			#FIXME: update user score in db
 			print("Correct!")
-			self.message.set("Correct!")
+			self.answer_label['text'] = "Correct!"
 		else:
-			self.message.set("Incorrect! Either your answer was invalid, or it was not formatted correctly!")
+			print("Incorrect! Either your answer was invalid, or it was not formatted correctly!")
+			self.answer_label['text'] = "Incorrect!"
 
 	#input: 
 	#output: 
@@ -296,13 +300,13 @@ class MyApp:
 
 		while self.num1 == 0 and self.num2 == 0 and self.denom1 == 0 and self.denom2 == 0:
 			random.seed()
-			self.num1 = random.randint(-100, 100)
+			self.num1 = random.randint(-10, 10)
 			random.seed()
-			self.denom1 = random.randint(-100,100)
+			self.denom1 = random.randint(-10, 10)
 			random.seed()
-			self.num2 = random.randint(-100, 100)
+			self.num2 = random.randint(-10, 10)
 			random.seed()
-			self.denom2 = random.randint(-100,100)
+			self.denom2 = random.randint(-10, 10)
 
 		print("numerators:", self.num1, self.num2, "denomerators:", self.denom1, self.denom2)
 
@@ -364,6 +368,7 @@ class MyApp:
 				if password == results[0][2]:
 					print("password is correct, user logged in")
 					db.close()
+					self.username_master = username
 					return {'username':username, 'login':True}
 				else:
 					print("password incorrect, user not logged in")
@@ -417,7 +422,29 @@ class MyApp:
 				db.close()
 				return {'username':username, 'created':False}	
 
-	def killVinny():
+	#input: username, score to add (double: 1.0 or 0.5)
+	#output: 
+	#description: alter correct table
+	def alter_score(self, username, value):
+		if value == 1.0:
+			pass
+			#add 2 points
+		elif value == 0.5:
+			pass
+			#add 1 point
+		else:
+			print("can only add 1.0 or 0.5 points to score")
+
+	#input: username
+	#output: 
+	#description: get a user's score
+	def get_users_score(self, username):
+		pass
+
+	#input: 
+	#output: 
+	#description: display all scores in a table
+	def show_all_scores(self):
 		pass
 
 root = Tk()
