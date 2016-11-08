@@ -240,7 +240,7 @@ class MyApp:
 	def startResults(self, event):
 		print("results initialized...")
 
-		db = MySQLdb.connect("localhost", "root", "YOURDBPASS", "fractions_test")
+		db = MySQLdb.connect("localhost", "root", "YOURPASS", "fractions_test")
 		cursor = db.cursor()
 		username_query =  "SELECT * FROM users"
 		cursor.execute(username_query)
@@ -295,7 +295,7 @@ class MyApp:
 		#remove the entry widget, add a label to prevent user from entering again
 		self.users_answer.config(state=DISABLED)
 
-		if self.correct_answer == self.users_answer:
+		if self.correct_answer == self.users_answer_final.get():
 			#update user score in db
 			self.alter_score(self.username_master, 1.0)
 			print("Correct!")
@@ -316,7 +316,7 @@ class MyApp:
 		self.ops_table = {'+': operator.add, '*': operator.mul, '-': operator.sub, '/': operator.truediv}
 		self.operations = { 0:'+', 1:'-', 2:'*', 3:'/'}
 
-		while self.num1 == 0 and self.num2 == 0 and self.denom1 == 0 and self.denom2 == 0:
+		while ((self.num1 == 0) or (self.num2 == 0) or (self.denom1 == 0) or (self.denom2 == 0)):
 			random.seed()
 			self.num1 = random.randint(-10, 10)
 			random.seed()
@@ -329,6 +329,7 @@ class MyApp:
 		print("numerators:", self.num1, self.num2, "denomerators:", self.denom1, self.denom2)
 
 		self.op = self.operations[random.randint(0,3)]
+
 
 		self.frac_1 = fractions.Fraction(self.num1, self.denom1)
 		self.frac_2 = fractions.Fraction(self.num2, self.denom2)
@@ -367,7 +368,7 @@ class MyApp:
 	def login(self, username, password):
 		print("starting authentication procedure...")
 
-		db = MySQLdb.connect("localhost", "root", "YOURDBPASS", "fractions_test")
+		db = MySQLdb.connect("localhost", "root", "YOURPASS", "fractions_test")
 		cursor = db.cursor()
 		username_query =  "SELECT * FROM users WHERE username = '%s'" % username
 		
@@ -407,7 +408,7 @@ class MyApp:
 	def create_account(self, username, password):
 		print("starting account creation procedure...")
 
-		db = MySQLdb.connect("localhost", "root", "YOURDBPASS", "fractions_test")
+		db = MySQLdb.connect("localhost", "root", "YOURPASS", "fractions_test")
 		cursor = db.cursor()
 		username_query =  "SELECT * FROM users WHERE username = '%s'" % username
 		
@@ -444,12 +445,13 @@ class MyApp:
 	#output: 
 	#description: alter correct table
 	def alter_score(self, username, value):
-		db = MySQLdb.connect("localhost", "root", "YOURDBPASS", "fractions_test")
+		db = MySQLdb.connect("localhost", "root", "YOURPASS", "fractions_test")
 		cursor = db.cursor()
-		insert_statement = "INSERT INTO users(score) VALUES ('%d')" % (self.get_users_score(username) + value)
+		insert_statement = "UPDATE users SET score='%d' WHERE username='%s'" % ((self.get_users_score(username) + value), username)
 
-		if value == 1.0 or value == 1.0:
-			cursor.execute(username_query)
+		if value == 1.0:
+			print("executing statement:", insert_statement)
+			cursor.execute(insert_statement)
 			print("score value for user", username, "updated successfully")
 			db.close()
 		else:
@@ -459,7 +461,7 @@ class MyApp:
 	#output: 
 	#description: get a user's score
 	def get_users_score(self, username):
-		db = MySQLdb.connect("localhost", "root", "YOURDBPASS", "fractions_test")
+		db = MySQLdb.connect("localhost", "root", "YOURPASS", "fractions_test")
 		cursor = db.cursor()
 		username_query =  "SELECT * FROM users WHERE username = '%s'" % username
 
